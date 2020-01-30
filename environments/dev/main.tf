@@ -12,29 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Provider definitions
+terraform {
+  required_version = "~> 0.12.6"
 
-locals {
-  "env" = "dev"
+  backend "gcs" {
+    credentials = "otl-vpc-shared-f67897f60c2c.json"
+    bucket = "otl-vpc-shared-tf-state"
+    prefix = "projects"
+  }
 }
 
 provider "google" {
-  project = "${var.project}"
+  version = "~> 2.18"
+  credentials = "${file(var.credentials_file_path)}"
+  
+  region  = var.region
+  zone    = var.zone
 }
 
-module "vpc" {
-  source  = "../../modules/vpc"
-  project = "${var.project}"
-  env     = "${local.env}"
+# Data definitions
+data "google_organization" "otxlab" {
+  domain = var.domain
 }
 
-module "http_server" {
-  source  = "../../modules/http_server"
-  project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
+data "google_billing_account" "otxlab" {
+  billing_account = var.billing_account
+  open            = true
 }
 
-module "firewall" {
-  source  = "../../modules/firewall"
-  project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
-}
+# First, create or grab the folder ID from the GUI
+# Second, if POC project, copy sample code in poc.tf and adjust
+# If regular LAB project, copy sample code in lab.tf and adjust
+# Run terraform plan && terraform apply

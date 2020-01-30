@@ -1,1 +1,0 @@
-project="otl-vpc-shared"
